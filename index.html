@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Інтерактивний розбір Стенфордського тюремного експерименту 1971 року: план тюрми по днях, карта пояснень, етичний комітет, міф і архів.">
+<title>Стенфордський експеримент: інтерактив</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<style>
+/* Layout: case file — stencil header band, folder tabs, each tab a hands-on instrument (floor plan, evidence map, sorting board, redaction slider) */
+:root{
+  --bg:#e6ebe6;--paper:#f5f7f4;--ink:#1c2420;--muted:#5a6660;--rule:#c3ccc5;
+  --accent:#c2410c;--accent-ink:#fff;--bar:#2b3530;--bar-ink:#e8ede9;
+  --khaki:#a89a6a;--khaki-ink:#1c2420;--zone:#dfe5df;--hot:rgba(194,65,12,.13);
+  --ok:#2f7a4b;--bad:#b42318;--warn:#a16207;
+  --display:"Oswald","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151a17;--paper:#1d2420;--ink:#e3e9e5;--muted:#9aa7a0;--rule:#36433d;
+  --accent:#f0793f;--accent-ink:#1a0f08;--bar:#0e1210;--bar-ink:#dfe6e2;
+  --khaki:#b8a874;--khaki-ink:#15130c;--zone:#232b26;--hot:rgba(240,121,63,.16);
+  --ok:#5cbf83;--bad:#f26d5f;--warn:#e0b04a;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151a17;--paper:#1d2420;--ink:#e3e9e5;--muted:#9aa7a0;--rule:#36433d;
+  --accent:#f0793f;--accent-ink:#1a0f08;--bar:#0e1210;--bar-ink:#dfe6e2;
+  --khaki:#b8a874;--khaki-ink:#15130c;--zone:#232b26;--hot:rgba(240,121,63,.16);
+  --ok:#5cbf83;--bad:#f26d5f;--warn:#e0b04a;color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.band{background:var(--bar);color:var(--bar-ink)}
+header .wrap{padding-block:26px 22px;display:grid;gap:10px}
+.stamp{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,6vw,50px);line-height:1.05;margin:0;text-transform:uppercase;text-wrap:balance}
+.lede{max-width:64ch;margin:0;opacity:.86}
+.stripe{height:10px;background:repeating-linear-gradient(135deg,var(--accent) 0 14px,var(--bar) 14px 28px)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;padding-top:20px;scrollbar-width:none}
+nav.tabs button{font:600 14px var(--body);border:1px solid var(--rule);border-bottom:none;background:transparent;color:var(--muted);padding:10px 16px;border-radius:8px 8px 0 0;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{background:var(--paper);color:var(--ink)}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.panel{background:var(--paper);border:1px solid var(--rule);border-radius:0 8px 8px 8px;padding-block:24px;padding-inline:clamp(14px,3vw,30px);margin-bottom:40px}
+h2{font-family:var(--display);font-weight:500;text-transform:uppercase;font-size:24px;margin:0 0 6px;letter-spacing:.02em}
+.sub{color:var(--muted);margin:0 0 18px;max-width:68ch}
+.label{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.btn{font:600 14px var(--body);border:1px solid var(--ink);background:var(--ink);color:var(--paper);padding:8px 14px;border-radius:6px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink)}
+
+/* Floor plan */
+.plan{width:100%;height:auto;display:block;border:1px solid var(--rule);border-radius:6px;background:var(--bg);touch-action:pan-y}
+.plan .z{fill:var(--zone);stroke:var(--rule);stroke-width:1.5}
+.plan .z.hot{fill:var(--hot);stroke:var(--accent)}
+.plan .zl{font:600 10px var(--mono);fill:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.plan .dash{stroke-dasharray:5 4}
+.plan .tok circle{stroke:var(--paper);stroke-width:1.5}
+.plan .tok text{font:600 7.5px var(--mono);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.plan .p circle{fill:var(--ink)}.plan .p text{fill:var(--paper)}
+.plan .g circle{fill:var(--khaki)}.plan .g text{fill:var(--khaki-ink)}
+.plan .s circle{fill:var(--accent)}.plan .s text{fill:var(--accent-ink)}
+.plan .ring{fill:none;stroke:var(--accent);stroke-width:2.5}
+.plan .call{font:600 9.5px var(--body);fill:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted);margin:10px 0 0}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:6px}
+
+.scrub{margin-top:18px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center}
+.track{position:relative;height:44px;cursor:pointer;touch-action:none;user-select:none}
+.track .line{position:absolute;left:12px;right:12px;top:14px;height:4px;background:var(--rule);border-radius:2px}
+.track .fill{position:absolute;left:12px;top:14px;height:4px;background:var(--accent);border-radius:2px}
+.track .tick{position:absolute;top:24px;transform:translateX(-50%);font:600 11px var(--mono);color:var(--muted)}
+.track .knob{position:absolute;top:4px;width:24px;height:24px;margin-left:-12px;border-radius:50%;background:var(--accent);border:3px solid var(--paper);box-shadow:0 0 0 1px var(--accent);cursor:grab}
+.track.drag .knob{cursor:grabbing;transform:scale(1.12)}
+.dayhead{margin-top:20px;padding-top:18px;border-top:1px solid var(--rule);display:grid;gap:6px}
+.day-title{font-family:var(--display);font-size:28px;text-transform:uppercase;margin:0;line-height:1.1;text-wrap:balance}
+.summary{margin:0;max-width:70ch;font-size:16.5px}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.stat{border:1px solid var(--rule);border-radius:6px;padding:8px 12px;display:grid;gap:0;min-width:120px;background:var(--bg)}
+.stat b{font-family:var(--display);font-size:22px;font-weight:500;line-height:1.1;font-variant-numeric:tabular-nums}
+.daybody{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:24px;margin-top:20px}
+@media (max-width:760px){.daybody{grid-template-columns:1fr}}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.filters button{font:500 13px var(--body);border:1px solid var(--rule);background:transparent;color:var(--ink);padding:4px 10px;border-radius:99px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.filters button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;display:inline-block}
+.a-P{background:var(--ink)}.a-G{background:var(--khaki)}.a-R{background:var(--accent)}.a-X{background:transparent;border:2px solid var(--muted)}
+.filters button[aria-pressed="true"] .a-P{background:var(--paper)}
+.events{list-style:none;margin:0;padding:0;display:grid;gap:0;position:relative}
+.events li{display:grid;grid-template-columns:64px 14px minmax(0,1fr);gap:10px;font-size:15px;padding-bottom:14px;position:relative}
+.events li::before{content:"";position:absolute;left:80px;top:16px;bottom:0;width:1px;background:var(--rule)}
+.events li:last-child::before{display:none}
+.events time{font-family:var(--mono);font-size:12px;color:var(--accent);padding-top:3px;text-align:right}
+.events .dot{margin-top:5px}
+.events .who{font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block}
+.events li[hidden]{display:none}
+.facets{display:grid;gap:12px;align-content:start}
+.facet{border:1px solid var(--rule);border-radius:6px;padding:12px 14px}
+.facet h4{margin:0 0 6px;font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
+.facet ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14.5px}
+.facet dl{margin:0;display:grid;gap:6px;font-size:14.5px}
+.facet dt{font-weight:600}.facet dd{margin:0;color:var(--muted)}
+.dayfoot{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:18px}
+.later{border-left:3px solid var(--warn);padding-left:12px;font-size:15px}
+.later.disp{border-color:var(--bad)}
+.later p{margin:4px 0 0}
+
+/* Evidence map */
+.mapwrap{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:22px}
+@media (max-width:760px){.mapwrap{grid-template-columns:1fr}}
+.plane{position:relative;aspect-ratio:1/1;max-width:100%;border:1px solid var(--rule);border-radius:6px;background:
+  linear-gradient(var(--rule),var(--rule)) 50% 0/1px 100% no-repeat,
+  linear-gradient(var(--rule),var(--rule)) 0 50%/100% 1px no-repeat,var(--bg);touch-action:none;user-select:none}
+.plane svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.quad{position:absolute;font:600 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);max-width:44%;line-height:1.3}
+.chip{position:absolute;transform:translate(-50%,-50%);font:600 12.5px var(--body);background:var(--paper);color:var(--ink);border:1.5px solid var(--ink);border-radius:99px;padding:6px 11px;white-space:nowrap;cursor:grab;touch-action:none;z-index:2}
+.chip.drag{cursor:grabbing;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:3}
+.chip.sel{background:var(--ink);color:var(--paper)}
+.ghost{position:absolute;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;border:2px dashed var(--accent);background:var(--hot);z-index:1}
+.axis{font:600 11px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:6px;display:flex;justify-content:space-between;gap:8px}
+.mapside{display:grid;gap:14px;align-content:start}
+.mapside .box{border:1px solid var(--rule);border-radius:6px;padding:14px}
+.mapside .box h3{font-family:var(--display);font-weight:500;text-transform:uppercase;font-size:19px;margin:2px 0 6px}
+.mapside .box p{margin:0 0 6px;font-size:15px}
+.tag{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase}
+
+/* Sorting board */
+.pool{display:grid;gap:8px;min-height:60px;padding:10px;border:1.5px dashed var(--rule);border-radius:6px;margin-bottom:14px}
+.pool:empty::before{content:"Усі рішення розподілено";color:var(--muted);font-size:14px}
+.bins{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.bins{grid-template-columns:1fr}}
+.bin{border:1.5px solid var(--rule);border-radius:6px;padding:10px;display:grid;gap:8px;align-content:start;min-height:120px;background:var(--bg);cursor:pointer}
+.bin.over{border-color:var(--accent);background:var(--hot)}
+.bin h3{font-family:var(--display);font-weight:500;text-transform:uppercase;font-size:17px;margin:0;display:flex;justify-content:space-between}
+.bin h3 span{font:600 12px var(--mono);color:var(--muted)}
+.card{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:10px 12px 10px 8px;display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;font-size:14.5px;cursor:grab;user-select:none}
+.card .grip{touch-action:none;color:var(--muted);font:700 15px var(--mono);line-height:1.2;cursor:grab;text-align:center}
+.card.sel{outline:2px solid var(--accent)}
+.card.drag{position:fixed;z-index:50;pointer-events:none;box-shadow:0 10px 26px rgba(0,0,0,.28);opacity:.95}
+.card .fb{grid-column:2;font-size:13.5px;border-left:3px solid var(--rule);padding-left:9px;margin-top:4px;color:var(--muted)}
+.card .fb b{color:var(--ink)}
+.card .fb.ok{border-color:var(--ok)}.card .fb.no{border-color:var(--bad)}
+.bin .card{cursor:grab}
+.score{margin-top:14px;background:var(--bar);color:var(--bar-ink);border-radius:6px;padding:12px 16px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:14px}
+.score b{color:var(--accent);font-size:18px}
+.score button{font:600 13px var(--body);background:transparent;color:var(--bar-ink);border:1px solid var(--bar-ink);border-radius:6px;padding:6px 12px;cursor:pointer}
+
+/* Redaction slider */
+.claims{display:grid;gap:14px}
+.cmp{border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+.cmp .q{padding:16px 22px;border-bottom:1px solid var(--rule);display:grid;gap:2px}
+.cmp .q strong{font-size:16px}
+.stage{position:relative;display:grid}
+.stage>.layer{grid-area:1/1;padding:18px 28px 64px;font-size:15px;line-height:1.6}
+.layer.old{background:var(--bg)}
+.layer.neo{background:var(--paper)}
+.layer .h{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;display:block}
+.layer.old .h{color:var(--muted)}
+.verdict{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:1px 8px;border-radius:99px;border:1px solid currentColor;margin-left:6px}
+.v-bad{color:var(--bad)}.v-warn{color:var(--warn)}.v-ok{color:var(--ok)}
+.layer p{margin:0}
+.seam{position:absolute;top:0;bottom:0;width:3px;margin-left:-1.5px;background:var(--accent);pointer-events:none}
+.seam::after{content:"⟷";position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--accent-ink);width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:700 14px var(--body)}
+.stage input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+.stage input:focus-visible+.seam{box-shadow:0 0 0 3px var(--accent)}
+footer{color:var(--muted);font-size:13px;padding-bottom:40px}
+footer p{max-width:72ch;margin:0 0 6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="band">
+  <div class="wrap">
+    <div class="stamp">Справа № SPE-1971 · Jordan Hall, підвал · Стенфорд</div>
+    <h1>Стенфордський тюремний експеримент</h1>
+    <p class="lede">Шість днів серпня 1971 року в підвалі факультету психології, 24 студенти, ролі охоронців і в'язнів. Перетягуйте повзунок дня, розставляйте пояснення на карті доказів, сортуйте рішення дослідників і стирайте «підручникову» версію, щоб побачити архівну.</p>
+  </div>
+</header>
+<div class="stripe" aria-hidden="true"></div>
+
+<main class="wrap">
+  <nav class="tabs" role="tablist" aria-label="Розділи">
+    <button role="tab" id="t-plan" aria-selected="true" aria-controls="p-plan">План тюрми</button>
+    <button role="tab" id="t-map" aria-selected="false" aria-controls="p-map">Карта пояснень</button>
+    <button role="tab" id="t-eth" aria-selected="false" aria-controls="p-eth">Етичний комітет</button>
+    <button role="tab" id="t-myth" aria-selected="false" aria-controls="p-myth">Міф і архів</button>
+  </nav>
+
+  <!-- 1. Floor plan -->
+  <section class="panel" id="p-plan" role="tabpanel" aria-labelledby="t-plan">
+    <h2>Підвал Jordan Hall, день за днем</h2>
+    <p class="sub">Тягніть помаранчевий маркер по шкалі днів: в'язні й охоронці переміщуються планом так, як це відбувалося під час експерименту. Схема спрощена, розміри приміщень умовні.</p>
+    <svg class="plan" id="plan" viewBox="0 0 640 400" role="img" aria-label="Схема імпровізованої тюрми з позиціями учасників"></svg>
+    <div class="legend">
+      <span><i style="background:var(--ink)"></i>в'язень</span>
+      <span><i style="background:var(--khaki)"></i>охоронець</span>
+      <span><i style="background:var(--accent)"></i>дослідники (З — Зімбардо, М — Маслач)</span>
+    </div>
+    <div class="scrub">
+      <button class="btn" type="button" id="play">▶ Програти</button>
+      <div class="track" id="track" role="slider" tabindex="0" aria-label="День експерименту" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0">
+        <div class="line"></div><div class="fill" id="fill"></div><div class="knob" id="knob"></div>
+      </div>
+    </div>
+    <div class="dayhead">
+      <div class="label" id="day-date"></div>
+      <h3 class="day-title" id="day-title"></h3>
+      <p class="summary" id="day-summary"></p>
+      <div class="stats" id="day-stats"></div>
+    </div>
+    <div class="daybody">
+      <div>
+        <div class="label">Хронологія дня · хто діяв</div>
+        <div class="filters" id="filters"></div>
+        <ul class="events" id="day-events"></ul>
+      </div>
+      <div class="facets" id="facets"></div>
+    </div>
+    <div class="dayfoot" id="dayfoot"></div>
+  </section>
+
+  <!-- 2. Evidence map -->
+  <section class="panel" id="p-map" role="tabpanel" aria-labelledby="t-map" hidden>
+    <h2>Карта пояснень</h2>
+    <p class="sub">Шість пояснень того, що сталося. Перетягніть кожне туди, де, на вашу думку, йому місце: праворуч, якщо його вважала головним класична версія, і вгору, якщо його добре підтверджують незалежні дослідження. Потім порівняйте зі зведенням літератури.</p>
+    <div class="mapwrap">
+      <div>
+        <div class="plane" id="plane">
+          <svg id="planesvg" aria-hidden="true"></svg>
+          <span class="quad" style="left:10px;top:8px">Мало згадували, але добре підтверджено</span>
+          <span class="quad" style="right:10px;top:8px;text-align:right">Ядро версії і підтверджено</span>
+          <span class="quad" style="left:10px;bottom:8px">Другорядне і слабке</span>
+          <span class="quad" style="right:10px;bottom:8px;text-align:right">Ядро версії, але слабкі докази</span>
+        </div>
+        <div class="axis"><span>← рідко згадувалось</span><span>у класичній версії</span><span>головне →</span></div>
+      </div>
+      <div class="mapside">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" type="button" id="reveal">Показати зведення</button>
+          <button class="btn ghost" type="button" id="mapreset">Скинути</button>
+        </div>
+        <div class="box" id="mapinfo">
+          <div class="label">Пояснення</div>
+          <h3>Оберіть картку</h3>
+          <p>Натисніть або перетягніть будь-яке пояснення на полі, щоб прочитати, що воно означає і що про нього відомо.</p>
+        </div>
+        <p class="label" id="mapscore" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Ethics board -->
+  <section class="panel" id="p-eth" role="tabpanel" aria-labelledby="t-eth" hidden>
+    <h2>Ви — етичний комітет</h2>
+    <p class="sub">Сім рішень із реального протоколу 1971 року. Перетягніть кожне за ручку ⠿ в одну з колонок або торкніться картки, а потім колонки. Під карткою з'явиться сучасна оцінка за кодексом APA та вимогами IRB.</p>
+    <div class="pool" id="pool"></div>
+    <div class="bins">
+      <div class="bin" data-bin="yes"><h3>Схвалити <span id="c-yes">0</span></h3></div>
+      <div class="bin" data-bin="fix"><h3>Змінити <span id="c-fix">0</span></h3></div>
+      <div class="bin" data-bin="no"><h3>Відхилити <span id="c-no">0</span></h3></div>
+    </div>
+    <div class="score" aria-live="polite">
+      <span>Збіг із сучасними стандартами: <b id="sc">0</b> / 7</span>
+      <button type="button" id="ethreset">Почати спочатку</button>
+    </div>
+  </section>
+
+  <!-- 4. Myth vs archive -->
+  <section class="panel" id="p-myth" role="tabpanel" aria-labelledby="t-myth" hidden>
+    <h2>Міф і архів</h2>
+    <p class="sub">Кожне твердження накрите підручниковою версією. Тягніть шов ліворуч, щоб відкрити, що показали записи, інтерв'ю та повторні дослідження.</p>
+    <div class="claims" id="claims"></div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p>Джерела: Haney, Banks & Zimbardo (1973); Zimbardo, «The Lucifer Effect» (2007); Banuazizi & Movahedi (1975); Carnahan & McFarland (2007); Reicher & Haslam (2006); Le Texier (2019), American Psychologist; Ben Blum, «The Lifespan of a Lie» (2018); сайт prisonexp.org; Stanford Magazine (2011).</p>
+  <p>Розташування на карті пояснень — редакційне узагальнення цих джерел, не виміряні значення. Дні звільнення: 8612 — понеділок, 819 — середа, ще двоє — четвер; день виходу ще одного в'язня (між понеділком і середою) реконструйовано приблизно.</p>
+</footer>
+
+<script>
+/* ---------- Data ---------- */
+const ACT={P:"в'язні",G:"охоронці",R:"дослідники",X:"зовнішні"};
+const DAYS=[
+ {d:"субота",date:"14 серпня 1971",title:"Підготовка й інструктаж",
+  sum:"Охоронці облаштовують «тюрму» і проходять інструктаж. Майбутні в'язні ще вдома й не знають, коли все почнеться.",
+  st:[["0","в'язнів у камерах"],["0","відпущено"],["9 + 3","охоронців: 3 зміни і резерв"],["Кімната охорони","головне місце"]],
+  ev:[["раніше","R","Оголошення в Palo Alto Times і The Stanford Daily: потрібні студенти-чоловіки для «психологічного дослідження тюремного життя», $15 на день, 1–2 тижні."],
+      ["раніше","R","Відгукнулися 75 людей. Після співбесід і тестів відібрано 24: 12 охоронців і 12 в'язнів, у кожній ролі 9 основних учасників і 3 резервні. Ролі розподілено випадково."],
+      ["день","G","Охоронці допомагають облаштувати коридор у підвалі Jordan Hall: двері з ґратами, табличка «Stanford County Jail», шафа під «нору»."],
+      ["день","R","Наглядач Девід Джаффе разом з охоронцями складає 17 правил тюрми."],
+      ["інструктаж","R","Зімбардо пояснює охоронцям мету: в'язні мають відчувати безсилля, нудьгу і страх, у них заберуть приватність та індивідуальність. Бити в'язнів і позбавляти їх їжі чи води заборонено."]],
+  G:["Форма хакі з армійського магазину, дзеркальні окуляри, свисток, кийок","Зміни по 8 годин, по 3 охоронці","Звертатися до в'язнів лише за номером"],
+  P:["Ще вдома. Знають лише, що погодилися на дослідження"],
+  R:["Зімбардо — «суперінтендант», Джаффе — «наглядач»","Крейг Гейні та Кертіс Бенкс — асистенти-дослідники","Прихована камера та інтерком у коридорі"],
+  who:[["Філіп Зімбардо","керівник дослідження і «суперінтендант»"],["Девід Джаффе","студент, «наглядач» тюрми"]],
+  later:"Запис інструктажу показує, що атмосферу задали дослідники, а не лише сама ситуація. Джаффе на записі каже охоронцю, що кожен охоронець має бути «жорстким».",
+  disp:"Зімбардо роками описував інструктаж як мінімальний. Записи, на які спирається Ле Тексьє (2018–2019), показують докладні вказівки. Зімбардо і колеги відповіли, що критика ігнорує дані, які їй суперечать."},
+ {d:"неділя",date:"15 серпня 1971",title:"Арешти",
+  sum:"Справжня поліція заарештовує в'язнів удома. До ночі в них уже номери, халати і перша перекличка.",
+  st:[["9","в'язнів у камерах"],["0","відпущено"],["3","камери по 3 особи"],["Камери","головне місце"]],
+  ev:[["ранок","X","Поліція Пало-Альто забирає студентів удома за підозрою в «збройному пограбуванні» і «крадіжці зі зламом» (статті 211 і 459 кримінального кодексу Каліфорнії). Наручники й обшук на очах у сусідів."],
+      ["відділок","X","Оформлення в управлінні поліції: відбитки пальців, фото. Із зав'язаними очима в'язнів везуть до «тюрми»."],
+      ["прибуття","G","Роздягання догола, обприскування «від вошей». Халат з номером без білизни, гумові капці, панчоха на голові, ланцюг на щиколотці."],
+      ["день","R","Наглядач зачитує правила. Звертатися одне до одного дозволено лише за номером."],
+      ["02:30","G","Перша нічна перекличка зі свистками. Тих, хто плутає номер, карають віджиманнями."]],
+  G:["Переклички, щоб в'язні вивчили номери","Віджимання як покарання","Звернення лише за номером"],
+  P:["Багато хто сприймає все як гру","На перших перекличках в'язні ще жартують і сміються"],
+  R:["Зімбардо спостерігає з-за перегородки в кінці коридору","Частину подій записують на відео й аудіо"],
+  who:[["Поліція Пало-Альто","справжні офіцери, погодилися провести арешти"]],
+  later:"Наприкінці першого дня Зімбардо констатував: «Нічого не відбувається». Охоронці не знали, як поводитися, доки наглядач не почав їх підганяти.",disp:""},
+ {d:"понеділок",date:"16 серпня 1971",title:"Бунт",
+  sum:"В'язні бунтують. Охоронці придушують бунт і вперше ділять в'язнів на «добрих» і «поганих». Першого в'язня відпускають.",
+  st:[["8","в'язнів у камерах"],["1","відпущено (8612)"],["+3","резервних охоронці викликано"],["Камери","головне місце"]],
+  ev:[["ранок","P","В'язні знімають панчохи, зривають номери, барикадують двері камер ліжками й ображають охоронців."],
+      ["ранок","G","Охоронці кличуть підкріплення: приходять троє резервних, а нічна зміна добровільно лишається."],
+      ["день","G","Охоронці бризкають у камери з вогнегасника CO₂, роздягають в'язнів, виносять ліжка, ватажків замикають у «нору»."],
+      ["день","G","Камера 1 стає «камерою привілеїв» для трьох найменш активних бунтівників: одяг, ліжка, умивання, їжа на очах в інших. Згодом «добрих» і «поганих» перемішують, щоб в'язні підозрювали одне одного."],
+      ["вечір","G","Туалет стає привілеєм: після відбою в'язні користуються відром у камері."],
+      ["~36 год","P","8612 у гострому дистресі й вимагає випустити його."],
+      ["ніч","R","Зімбардо спершу пропонує 8612 стати інформатором, і той повертається в камеру. Згодом Крейг Гейні все ж відпускає його."]],
+  G:["Вогнегасник CO₂ проти бунтівників","Роздягання і вилучення ліжок","«Камера привілеїв» і перемішування груп","Обмеження туалету"],
+  P:["Організований бунт уже другого ранку","Після придушення солідарність слабне","8612 — перший, хто вимагає вийти"],
+  R:["Зімбардо вперше діє як начальник тюрми: пропонує угоду інформатора"],
+  who:[["8612 (Дуглас Корпі)","перший відпущений в'язень"]],
+  later:"У 2017 році Корпі сказав журналісту Бену Блуму, що зрив був зіграний: він хотів вийти, щоб готуватися до іспиту GRE. Зімбардо відповів, що зрив мусили сприймати як справжній.",
+  disp:"У документальному фільмі «Quiet Rage» (1992) Корпі казав, що дослідження глибоко на нього вплинуло. Пізніше він описував свій стан як зіграний."},
+ {d:"вівторок",date:"17 серпня 1971",title:"Відвідини і чутка про втечу",
+  sum:"Перед батьками тюрму показують охайною, а вночі готуються до нападу, якого так і не було.",
+  st:[["≈7","в'язнів у камерах"],["≈2","відпущено всього"],["10 хв","тривало побачення"],["5-й поверх","головне місце"]],
+  ev:[["день","G","Перед відвідинами в'язнів миють, камери прибирають, у коридорі грає музика, їжа краща."],
+      ["вечір","X","Години відвідин: до кожного в'язня не більше двох відвідувачів на 10 хвилин під наглядом охоронця. Кілька батьків стурбовані виглядом синів."],
+      ["вечір","G","Охоронець чує розмову: відпущений 8612 нібито приведе друзів визволяти в'язнів. Дослідники підсаджують в його колишню камеру інформатора."],
+      ["ніч","R","Зімбардо просить поліцію Пало-Альто перевести в'язнів у стару міську в'язницю. Поліція відмовляє через страхування. В'язнів, скутих ланцюгом і з мішками на головах, переводять у комору на 5-му поверсі."],
+      ["ніч","R","Зімбардо сам чекає «нападу» в порожньому коридорі. Гордон Бауер питає, яка в дослідженні незалежна змінна, і Зімбардо злиться."],
+      ["≈","P","Приблизно в ці дні відпускають ще одного в'язня через гостру стресову реакцію."],
+      ["ранок","G","Нападу немає, і того дня дані не збирали. Охоронці зганяють злість: переклички по кілька годин, віджимання, чищення унітазів голими руками."]],
+  G:["Показна «нормальність» для батьків","Мішки на головах під час переведення","Покарання за зірвану ніч: багатогодинні переклички"],
+  P:["На відвідинах в'язні переважно не скаржаться","Після нічного переведення — виснаження і роздратування"],
+  R:["Зімбардо контролює, що побачать батьки","Захищає «тюрму» від уявної загрози замість спостерігати"],
+  who:[["Гордон Бауер","психолог зі Стенфорда, колишній сусід Зімбардо по кімнаті в Єлі"]],
+  later:"Зімбардо пізніше визнав, що в цей момент думав як начальник в'язниці, а не як дослідник.",
+  disp:"Зімбардо пише, що до 819 (середа) відпустили двох в'язнів, але точний день другого звільнення не названо."},
+ {d:"середа",date:"18 серпня 1971",title:"Священник, 819 і перша комісія",
+  sum:"Священник питає в'язнів, як вони збираються вийти. 819 ламається під скандування товаришів, а пізно ввечері на його місце приходить новий в'язень 416.",
+  st:[["≈7","в'язнів у камерах"],["≈3","відпущено всього"],["≈½","в'язнів назвалися номером"],["Коридор","головне місце"]],
+  ev:[["день","X","На запрошення Зімбардо приходить католицький священник, колишній тюремний капелан, щоб оцінити реалістичність тюрми. Приблизно половина в'язнів називає себе номером. Він питає: «Синку, що ти робиш, щоб вибратися звідси?» і пропонує зв'язатися з батьками щодо юриста."],
+      ["день","P","819 єдиний відмовляється говорити зі священником: йому зле, він не їсть і просить лікаря. Під час розмови з персоналом ламається й плаче."],
+      ["день","G","Охоронець шикує в'язнів, і ті з десяток разів хором скандують: «819 — поганий в'язень. Через нього в моїй камері безлад, пане офіцере»."],
+      ["день","R","Зімбардо знімає з 819 ланцюг і панчоху й нагадує йому, що він учасник дослідження, а не в'язень. 819 погоджується піти."],
+      ["день","X","Комісія з дострокового звільнення: секретарки факультету й аспіранти на чолі з консультантом Карло Прескоттом. В'язнів приводять скутими. Більшість погоджується віддати зароблені гроші за звільнення, а потім покірно повертається в камери."],
+      ["~23:00","P","На місце відпущених викликають резервного учасника. Він стає в'язнем 416."]],
+  G:["Колективне покарання через одного в'язня","Публічне приниження хором"],
+  P:["Готові віддати гроші, щоб вийти","Але не користуються правом просто вийти з дослідження"],
+  R:["Зімбардо запрошує священника і консультанта-ексв'язня, щоб тюрма виглядала реалістичніше","Сам відпускає 819 після зриву"],
+  who:[["819","в'язень, що зламався під скандування"],["Карло Прескотт","консультант, колишній в'язень, голова комісії. Пізніше казав, що йому було гидко від власної ролі"],["Священник","колишній тюремний капелан"]],
+  later:"За записами неможливо відрізнити справжнє «вживання в роль» від гри в очікуваний результат.",
+  disp:"За сайтом Зімбардо, комісія засідала наступного дня після зриву 819. Архівна реконструкція називає два засідання: у середу і в четвер. Тут перше засідання показано в середу."},
+ {d:"четвер",date:"19 серпня 1971",title:"Голодування і «нора»",
+  sum:"Новий в'язень оголошує голодування, нічна зміна влаштовує найжорсткіші приниження, а Кристина Маслач вимагає все зупинити.",
+  st:[["≈5","в'язнів у камерах"],["5","відпущено всього"],["3 год","416 у «норі» при ліміті 1 год"],["«Нора»","головне місце"]],
+  ev:[["обід","P","416 оголошує голодування, щоб домогтися звільнення."],
+      ["день","X","Друге засідання комісії з дострокового звільнення. Двох в'язнів відпускають після засідання."],
+      ["день","G","Охоронці намагаються змусити 416 їсти сосиски, а потім замикають його в «норі» на три години, хоча їхні ж правила дозволяли одну."],
+      ["вечір","G","Старший охоронець пропонує в'язням вибір: віддати свої ковдри, щоб 416 вийшов з «нори», або залишити його там на ніч. Більшість залишає ковдри собі."],
+      ["ніч","G","Нічна зміна з «Джоном Вейном» влаштовує принизливі ігри, зокрема з сексуальним підтекстом."],
+      ["пізно ввечері","X","Кристина Маслач бачить, як в'язнів із мішками на головах і скутими ногами ведуть до туалету, і протестує: «Це жахливо, що ви робите з цими хлопцями!»"],
+      ["ніч","R","Зімбардо спершу сперечається з нею, потім погоджується і вирішує зупинити дослідження."]],
+  G:["«Нора» як покарання за протест","Колективний вибір проти одного в'язня","Сексуалізовані приниження вночі"],
+  P:["416 — єдиний відкритий протест після бунту","Інші в'язні бачать у ньому порушника спокою, а не героя","За Зімбардо, в одного в'язня після відмови в звільненні з'являється психосоматичний висип по всьому тілу"],
+  R:["Маслач — єдина з понад 50 сторонніх відвідувачів, хто поставив під сумнів моральність того, що відбувалося"],
+  who:[["416 (Клей Ремзі)","учасник з резерву, голодувальник"],["«Джон Вейн» (Дейв Ешелман)","охоронець нічної зміни"],["Кристина Маслач","щойно захистила PhD у Стенфорді, кохана Зімбардо, згодом його дружина"]],
+  later:"Ешелман казав, що свідомо копіював жорстокого начальника тюрми з фільму «Холоднокровний Люк» і сам вигадував приниження. Зімбардо заперечив, що жорстоко поводилися й охоронці інших змін.",
+  disp:"Зімбардо пише, що процесію Маслач побачила близько 22:00, за її власним свідченням — пізніше. Архівна реконструкція сумнівається, що рішення ухвалили вже тієї ночі."},
+ {d:"п'ятниця",date:"20 серпня 1971",title:"Кінець і дебрифінг",
+  sum:"Дослідження зупинено на 6-й день із 14 запланованих. Охоронці й в'язні вперше говорять усі разом.",
+  st:[["5","в'язнів лишалося до кінця"],["5","відпущено достроково"],["6 з 14","днів тривало"],["Коридор","головне місце"]],
+  ev:[["ранок","X","На прохання батьків приходить юрист і ставить в'язням стандартні запитання, хоч знає, що це експеримент. За архівом, це був студент-правник."],
+      ["день","R","Зімбардо оголошує, що дослідження завершено. Частина охоронців розчарована."],
+      ["день","R","Зустрічі спершу з охоронцями, потім з в'язнями (разом із раніше відпущеними), потім усі разом. Обговорюють, що відбувалося і як можна було вчинити інакше."],
+      ["день","R","Учасникам платять за 6 днів участі."],
+      ["пізніше","R","Перші публікації 1973 року: Naval Research Reviews та International Journal of Criminology and Penology. Дослідження фінансувало Управління військово-морських досліджень США."]],
+  G:["Підсумок: приблизно третина поводилася ворожо й жорстоко","Частина — «суворо, але за правилами»","Кілька «добрих» робили в'язням дрібні послуги","Жоден не пішов, не запізнився і не просив понаднормових"],
+  P:["5 в'язнів відпущено достроково","Ті, хто лишився, переважно пасивні"],
+  R:["Зімбардо пізніше визнав, що мав зупинити дослідження раніше"],
+  who:[],
+  later:"Зімбардо десятиліттями популяризував висновок про «силу ситуації». Ле Тексьє (2019) стверджує, що висновки були значною мірою сформульовані ще до дослідження.",disp:""}
+];
+const MECH=[
+ {id:"deind",t:"Деіндивідуалізація",ex:.72,ey:.55,tag:"частково підтверджено поза SPE",
+  p:"Номери замість імен, однакові халати, дзеркальні окуляри охоронців. Ідея: анонімність послаблює самоконтроль.",
+  e:"Ефект знаходять в інших роботах, але в SPE не було контрольної умови без уніформи, тож внесок саме цього фактора невідомий."},
+ {id:"role",t:"Конформність ролі",ex:.94,ey:.22,tag:"під сумнівом",
+  p:"Головне пояснення Зімбардо: люди автоматично заповнюють отриману соціальну роль.",
+  e:"Ролі не лише «видали», а й докладно розтлумачили на інструктажі. BBC Prison Study не отримав автоматичної тиранії."},
+ {id:"power",t:"Влада без контролю",ex:.62,ey:.82,tag:"стійкий урок",
+  p:"Охоронці мали майже необмежене право карати, а наглядав за ними сам автор.",
+  e:"Найстійкіший висновок: зловживання росте там, де немає підзвітності. Це підтримують і інші дослідження, і реальні інституційні скандали."},
+ {id:"help",t:"Вивчена безпорадність",ex:.5,ey:.34,tag:"можливе, не доведене",
+  p:"Довільні покарання і недосипання мали зробити в'язнів пасивними.",
+  e:"Пасивність можна пояснити й інакше: в'язні знали, що це гра, і просто чекали кінця."},
+ {id:"demand",t:"Очікування експериментатора",ex:.12,ey:.74,tag:"сильна альтернатива",
+  p:"Учасники знали тему і здогадувались, якої поведінки від них хочуть.",
+  e:"Banuazizi & Movahedi (1975): студенти, які лише прочитали опис, правильно передбачили поведінку обох груп."},
+ {id:"select",t:"Самовідбір",ex:.06,ey:.7,tag:"підтверджено",
+  p:"Оголошення прямо згадувало тюремне життя.",
+  e:"Carnahan & McFarland (2007): на таке оголошення відгукуються люди з вищою агресивністю й авторитарністю та нижчою емпатією."}
+];
+
+const DEC=[
+ {t:"Учасникам не кажуть, що їх «арештує» справжня поліція вдома.",good:"no",
+  fb:"Згода має охоплювати суттєві ризики. Публічний арешт на очах у сусідів — саме такий ризик."},
+ {t:"Автор дослідження одночасно грає «суперінтенданта» тюрми.",good:"no",
+  fb:"Конфлікт інтересів: той, хто мав би зупинити шкоду, зацікавлений продовжувати. Потрібен незалежний спостерігач."},
+ {t:"Охоронцям пояснюють, що в'язні мають відчувати страх і безсилля.",good:"no",
+  fb:"Це навмисна психологічна шкода і водночас помилка методу: результат задано інструкцією."},
+ {t:"Фізичне насильство охоронцям заборонено.",good:"yes",
+  fb:"Правильне обмеження, хоч воно не захищає від принижень і позбавлення сну."},
+ {t:"Учасникові, який просить вийти, пропонують стати інформатором і повертають у камеру.",good:"no",
+  fb:"Право вийти будь-коли без тиску — базова вимога. Тут його фактично порушено."},
+ {t:"Після завершення проводять дебрифінг з учасниками.",good:"yes",
+  fb:"Добра практика. Сучасний протокол додав би ще подальше спостереження за станом учасників."},
+ {t:"Немає заздалегідь визначених критеріїв зупинки.",good:"fix",
+  fb:"Сучасний комітет повернув би протокол на доопрацювання: потрібні чіткі умови припинення."}
+];
+
+const CLAIMS=[
+ {c:"Охоронці самі вигадали жорстокі методи.",
+  old:"Охоронцям дали лише загальні рамки. Жорстокість виникла спонтанно, під впливом ролі.",
+  neo:"Записи фіксують інструктаж про атмосферу страху і наглядача, який умовляв «м'якого» охоронця стати жорсткішим. Наглядач Джаффе на записі каже охоронцю, що кожен має бути «жорстким». Частину покарань запропонували самі дослідники.",v:["v-bad","спростовано"]},
+ {c:"Ситуація зробила жорстокими звичайних людей.",
+  old:"Учасники були психологічно здорові, тож різницю в поведінці пояснює лише роль.",
+  neo:"Жорстоко поводилася меншість охоронців. Самовідбір через оголошення та великі індивідуальні відмінності показують, що ситуація — не єдиний фактор.",v:["v-warn","спрощено"]},
+ {c:"В'язні зламалися від реального стресу.",
+  old:"Гострі емоційні реакції в перші дні доводять силу тюремного середовища.",
+  neo:"Стрес справді був у частини учасників. Але один із найвідоміших зривів, за словами самого учасника, був частково зіграний.",v:["v-warn","змішані дані"]},
+ {c:"Результат відтворено.",
+  old:"Десятиліттями SPE подавали в підручниках як класичний доказ.",
+  neo:"Повного повтору немає. У BBC Prison Study (2002) охоронці не стали тиранами спонтанно, а в'язні згуртувалися. Результат залежав від групової ідентичності.",v:["v-bad","не відтворено"]},
+ {c:"Влада без контролю веде до зловживань.",
+  old:"Головний урок для в'язниць, армії та будь-яких інституцій.",
+  neo:"Загальний висновок підтримують інші дані. Але SPE — радше яскрава ілюстрація, ніж строгий доказ.",v:["v-ok","узгоджується з іншими даними"]}
+];
+
+/* ---------- Floor plan ---------- */
+const NS="http://www.w3.org/2000/svg";
+const plan=document.getElementById('plan');
+const Z={
+ c1:{x:40,y:40,w:110,h:90,l:"Камера 1"},c2:{x:160,y:40,w:110,h:90,l:"Камера 2"},c3:{x:280,y:40,w:110,h:90,l:"Камера 3"},
+ f5:{x:420,y:20,w:200,h:110,l:"5-й поверх",dash:1},
+ yard:{x:20,y:140,w:520,h:80,l:"Коридор «Двір»"},obs:{x:548,y:140,w:72,h:80,l:"Нагляд"},
+ hole:{x:40,y:230,w:70,h:62,l:"«Нора»"},guard:{x:120,y:230,w:190,h:80,l:"Кімната охорони"},
+ office:{x:320,y:230,w:120,h:80,l:"Кабінет"},out:{x:450,y:240,w:170,h:140,l:"Поза тюрмою",dash:1}
+};
+const zoneEls={};
+for(const k in Z){const z=Z[k];
+  const r=document.createElementNS(NS,'rect');r.setAttribute('x',z.x);r.setAttribute('y',z.y);r.setAttribute('width',z.w);r.setAttribute('height',z.h);r.setAttribute('rx',4);
+  r.setAttribute('class','z'+(z.dash?' dash':''));plan.appendChild(r);zoneEls[k]=r;
+  const t=document.createElementNS(NS,'text');t.setAttribute('x',z.x+7);t.setAttribute('y',z.y+15);t.setAttribute('class','zl');t.textContent=z.l;plan.appendChild(t);}
+const call=document.createElementNS(NS,'text');call.setAttribute('class','call');plan.appendChild(call);
+
+const P=["8612","819","","","","","","","","416"]; // prisoners; unnamed are anonymous
+const tokens={};
+function mkTok(id,cls,label){const g=document.createElementNS(NS,'g');g.setAttribute('class','tok '+cls);
+  const c=document.createElementNS(NS,'circle');c.setAttribute('r',13);g.appendChild(c);
+  const t=document.createElementNS(NS,'text');t.textContent=label;g.appendChild(t);plan.appendChild(g);tokens[id]=g;}
+P.forEach((n,i)=>mkTok('p'+i,'p',n||'№'));
+for(let i=0;i<9;i++)mkTok('g'+i,'g','О');
+mkTok('zim','s','З');mkTok('mas','s','М');
+const ring=document.createElementNS(NS,'circle');ring.setAttribute('class','ring');ring.setAttribute('r',18);plan.appendChild(ring);
+
+function slot(z,i,per,dx,dy,ox,oy){const r=Z[z];return [r.x+(ox||24)+(i%per)*dx,r.y+(oy||48)+Math.floor(i/per)*dy];}
+const RELEASE={0:2,2:3,1:4,3:5,4:5}; // prisoner index -> day released (8612 d2, 819 d4, others approx.)
+const relOrder=[0,1,2,3,4];
+function stateFor(day){
+  const s={};
+  const inside=[];
+  for(let i=0;i<9;i++){
+    if(day===0){s['p'+i]=[...slot('out',i,5,30,32,22,46),1];continue;}
+    if(RELEASE[i]!==undefined&&day>=RELEASE[i]){s['p'+i]=[...slot('out',relOrder.indexOf(i),5,30,32,22,46),1];continue;}
+    inside.push('p'+i);
+  }
+  // 416
+  if(day===5)s.p9=[Z.hole.x+35,Z.hole.y+40,1]; else if(day>=4)inside.push('p9');
+  else s.p9=[...slot('out',9,5,30,32,22,46),0];
+  inside.forEach((id,k)=>{
+    if(day===3)s[id]=[...slot('f5',k,5,36,34,28,52),1];
+    else if(day===6)s[id]=[...slot('yard',k,9,30,30,40,30),1];
+    else{const cell=['c1','c2','c3'][k%3];s[id]=[...slot(cell,Math.floor(k/3),3,33,0,22,58),1];}
+  });
+  // guards
+  const shift=day===0?-1:day%3;
+  let rIdx=0;
+  for(let i=0;i<9;i++){
+    const id='g'+i;
+    if(day===6){s[id]=[...slot('yard',i,9,30,30,40,62),1];continue;}
+    if(Math.floor(i/3)===shift){
+      const k=i%3;s[id]=[200+k*70,Z.yard.y+52,1];
+    }else{s[id]=[...slot('guard',rIdx++,5,34,28,24,38),1];}
+  }
+  s.zim=day===3?[Z.yard.x+470,Z.yard.y+52,1]:day===6?[Z.yard.x+330,Z.yard.y+30,1]:[Z.office.x+40,Z.office.y+50,1];
+  s.mas=day===5?[Z.obs.x+36,Z.obs.y+50,1]:day===6?[Z.yard.x+360,Z.yard.y+30,1]:[...slot('out',14,5,30,32,22,46),0];
+  return s;
+}
+const STATES=[0,1,2,3,4,5,6].map(stateFor);
+const HOT={2:['c1','c2','c3'],3:['f5','yard'],5:['hole','obs'],6:['yard']};
+const CALL={2:[{x:24,y:137,t:"Бунт у камерах · камера 1 — «привілеїв»"},'p0'],3:[{x:24,y:137,t:"Зімбардо чекає «нападу» в коридорі"},null],
+  4:[{x:24,y:137,t:"819 відпущено · вночі приходить 416"},'p1'],5:[{x:24,y:137,t:"416 у «норі» · «Джон Вейн» на зміні · Маслач"},'g6'],6:[{x:24,y:137,t:"Дебрифінг усіх учасників"},null],
+  1:[{x:24,y:137,t:"Арешт і прибуття в камери"},null],0:[{x:456,y:236,t:""},null]};
+
+const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+let T=0;
+function render(t){
+  T=Math.max(0,Math.min(6,t));
+  const a=Math.floor(T),b=Math.min(6,a+1),f=ease(T-a);
+  const A=STATES[a],B=STATES[b];
+  for(const id in tokens){const p=A[id],q=B[id];
+    const x=p[0]+(q[0]-p[0])*f,y=p[1]+(q[1]-p[1])*f,o=p[2]+(q[2]-p[2])*f;
+    tokens[id].setAttribute('transform',`translate(${x.toFixed(1)},${y.toFixed(1)})`);tokens[id].style.opacity=o;}
+  const day=Math.round(T);
+  for(const k in zoneEls)zoneEls[k].classList.toggle('hot',(HOT[day]||[]).includes(k));
+  const c=CALL[day];call.setAttribute('x',c[0].x);call.setAttribute('y',c[0].y);call.textContent=c[0].t;
+  const rid=c[1]&&Math.abs(T-day)<.15?c[1]:null;
+  if(rid){const tr=tokens[rid].getAttribute('transform');ring.setAttribute('transform',tr);ring.style.opacity=1;}else ring.style.opacity=0;
+  // scrubber
+  const pct=T/6;
+  knob.style.left=`calc(12px + (100% - 24px) * ${pct})`;fill.style.width=`calc((100% - 24px) * ${pct})`;
+  track.setAttribute('aria-valuenow',day);track.setAttribute('aria-valuetext',`День ${day}: ${DAYS[day].title}`);
+  if(day!==shownDay)showDay(day);
+}
+let shownDay=-1;
+let actFilter=null;
+const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function showDay(n){shownDay=n;const x=DAYS[n];
+  document.getElementById('day-date').textContent=`${n===0?'День 0':'День '+n} · ${x.d}, ${x.date}`;
+  document.getElementById('day-title').textContent=x.title;
+  document.getElementById('day-summary').textContent=x.sum;
+  document.getElementById('day-stats').innerHTML=x.st.map(v=>`<div class="stat"><b>${esc(v[0])}</b><span class="label">${esc(v[1])}</span></div>`).join('');
+  const present=[...new Set(x.ev.map(e=>e[1]))];
+  if(actFilter&&!present.includes(actFilter))actFilter=null;
+  document.getElementById('filters').innerHTML=`<button type="button" data-a="" aria-pressed="${!actFilter}">усі · ${x.ev.length}</button>`+
+    present.map(a=>`<button type="button" data-a="${a}" aria-pressed="${actFilter===a}"><span class="dot a-${a}"></span>${ACT[a]} · ${x.ev.filter(e=>e[1]===a).length}</button>`).join('');
+  document.querySelectorAll('#filters button').forEach(b=>b.addEventListener('click',()=>{actFilter=b.dataset.a||null;showDay(n);}));
+  document.getElementById('day-events').innerHTML=x.ev.map(e=>`<li${actFilter&&e[1]!==actFilter?' hidden':''}><time>${esc(e[0])}</time><span class="dot a-${e[1]}"></span><span><span class="who">${ACT[e[1]]}</span>${esc(e[2])}</span></li>`).join('');
+  const list=a=>a.length?`<ul>${a.map(i=>`<li>${esc(i)}</li>`).join('')}</ul>`:'';
+  let f=`<div class="facet"><h4><span class="dot a-G"></span>Тактики охоронців</h4>${list(x.G)}</div>
+    <div class="facet"><h4><span class="dot a-P"></span>Реакції в'язнів</h4>${list(x.P)}</div>
+    <div class="facet"><h4><span class="dot a-R"></span>Роль дослідників</h4>${list(x.R)}</div>`;
+  if(x.who.length)f+=`<div class="facet"><h4>Ключові фігури дня</h4><dl>${x.who.map(w=>`<div><dt>${esc(w[0])}</dt><dd>${esc(w[1])}</dd></div>`).join('')}</dl></div>`;
+  document.getElementById('facets').innerHTML=f;
+  document.getElementById('dayfoot').innerHTML=`<div class="later"><div class="label">Пізніше з'ясувалося</div><p>${esc(x.later)}</p></div>`+
+    (x.disp?`<div class="later disp"><div class="label">Розбіжності в джерелах</div><p>${esc(x.disp)}</p></div>`:'');}
+
+const track=document.getElementById('track'),knob=document.getElementById('knob'),fill=document.getElementById('fill');
+for(let i=0;i<=6;i++){const s=document.createElement('span');s.className='tick';s.textContent=i;s.style.left=`calc(12px + (100% - 24px) * ${i/6})`;track.appendChild(s);}
+let anim=null;
+function animateTo(target,dur){cancelAnimationFrame(anim);const from=T,st=performance.now();
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;if(reduce){render(target);return;}
+  const step=now=>{const k=Math.min(1,(now-st)/dur);render(from+(target-from)*k);if(k<1)anim=requestAnimationFrame(step);};anim=requestAnimationFrame(step);}
+function tFromX(x){const r=track.getBoundingClientRect();return Math.max(0,Math.min(1,(x-r.left-12)/(r.width-24)))*6;}
+track.addEventListener('pointerdown',e=>{cancelAnimationFrame(anim);stopPlay();track.setPointerCapture(e.pointerId);track.classList.add('drag');render(tFromX(e.clientX));});
+track.addEventListener('pointermove',e=>{if(track.classList.contains('drag'))render(tFromX(e.clientX));});
+const endDrag=()=>{if(!track.classList.contains('drag'))return;track.classList.remove('drag');animateTo(Math.round(T),250);};
+track.addEventListener('pointerup',endDrag);track.addEventListener('pointercancel',endDrag);
+track.addEventListener('keydown',e=>{const d=Math.round(T);
+  if(e.key==='ArrowRight'||e.key==='ArrowUp'){e.preventDefault();animateTo(Math.min(6,d+1),600);}
+  if(e.key==='ArrowLeft'||e.key==='ArrowDown'){e.preventDefault();animateTo(Math.max(0,d-1),600);}
+  if(e.key==='Home'){e.preventDefault();animateTo(0,600)}if(e.key==='End'){e.preventDefault();animateTo(6,600)}});
+let playing=null;const playBtn=document.getElementById('play');
+function stopPlay(){if(playing){clearTimeout(playing);playing=null;playBtn.textContent='▶ Програти';}}
+function playStep(){const d=Math.round(T);if(d>=6){stopPlay();return;}animateTo(d+1,1100);playing=setTimeout(playStep,2600);}
+playBtn.addEventListener('click',()=>{if(playing){stopPlay();return;}playBtn.textContent='❚❚ Пауза';if(Math.round(T)>=6)render(0);playing=setTimeout(playStep,200);});
+render(0);
+
+/* ---------- Evidence map ---------- */
+const plane=document.getElementById('plane'),psvg=document.getElementById('planesvg');
+const START=[[.3,.62],[.5,.5],[.7,.62],[.3,.38],[.5,.26],[.7,.38]];
+const pos={};let revealed=false;
+const chips={};
+MECH.forEach((m,i)=>{
+  const c=document.createElement('button');c.type='button';c.className='chip';c.textContent=m.t;c.dataset.id=m.id;
+  plane.appendChild(c);chips[m.id]=c;pos[m.id]=[...START[i]];place(m.id);
+  let drag=false,moved=false,off=[0,0];
+  c.addEventListener('pointerdown',e=>{drag=true;moved=false;c.setPointerCapture(e.pointerId);c.classList.add('drag');select(m.id);});
+  c.addEventListener('pointermove',e=>{if(!drag)return;moved=true;const r=plane.getBoundingClientRect();
+    pos[m.id]=[Math.max(.04,Math.min(.96,(e.clientX-r.left)/r.width)),Math.max(.04,Math.min(.96,1-(e.clientY-r.top)/r.height))];place(m.id);if(revealed)drawLines();});
+  const up=()=>{if(!drag)return;drag=false;c.classList.remove('drag');if(revealed)scoreMap();};
+  c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);
+  c.addEventListener('keydown',e=>{const k={ArrowLeft:[-.04,0],ArrowRight:[.04,0],ArrowUp:[0,.04],ArrowDown:[0,-.04]}[e.key];
+    if(!k)return;e.preventDefault();pos[m.id]=[Math.max(.04,Math.min(.96,pos[m.id][0]+k[0])),Math.max(.04,Math.min(.96,pos[m.id][1]+k[1]))];place(m.id);if(revealed){drawLines();scoreMap();}});
+  c.addEventListener('focus',()=>select(m.id));
+});
+function place(id){const c=chips[id];c.style.left=(pos[id][0]*100)+'%';c.style.top=((1-pos[id][1])*100)+'%';}
+function select(id){Object.values(chips).forEach(c=>c.classList.toggle('sel',c.dataset.id===id));
+  const m=MECH.find(x=>x.id===id);
+  document.getElementById('mapinfo').innerHTML=`<span class="tag">${revealed?m.tag:'пояснення'}</span><h3>${m.t}</h3><p>${m.p}</p>${revealed?`<p><b>Що відомо:</b> ${m.e}</p>`:'<p class="label">Відкрийте зведення, щоб побачити оцінку доказів</p>'}`;}
+const ghosts=[];
+function drawLines(){psvg.innerHTML='';const r=plane.getBoundingClientRect();psvg.setAttribute('viewBox',`0 0 ${r.width} ${r.height}`);
+  MECH.forEach(m=>{const l=document.createElementNS(NS,'line');l.setAttribute('x1',pos[m.id][0]*r.width);l.setAttribute('y1',(1-pos[m.id][1])*r.height);
+    l.setAttribute('x2',m.ex*r.width);l.setAttribute('y2',(1-m.ey)*r.height);l.setAttribute('stroke','var(--accent)');l.setAttribute('stroke-width','1.5');l.setAttribute('stroke-dasharray','4 4');psvg.appendChild(l);});}
+function scoreMap(){const d=MECH.reduce((s,m)=>s+Math.hypot(pos[m.id][0]-m.ex,pos[m.id][1]-m.ey),0)/MECH.length;
+  const pct=Math.round(Math.max(0,1-d/.7)*100);
+  document.getElementById('mapscore').textContent=`Близькість вашої карти до зведення: ${pct}%`;}
+document.getElementById('reveal').addEventListener('click',()=>{
+  revealed=!revealed;document.getElementById('reveal').textContent=revealed?'Сховати зведення':'Показати зведення';
+  ghosts.forEach(g=>g.remove());ghosts.length=0;psvg.innerHTML='';document.getElementById('mapscore').textContent='';
+  if(revealed){MECH.forEach(m=>{const g=document.createElement('span');g.className='ghost';g.title=m.t;g.style.left=(m.ex*100)+'%';g.style.top=((1-m.ey)*100)+'%';plane.appendChild(g);ghosts.push(g);});drawLines();scoreMap();}
+  const sel=document.querySelector('.chip.sel');if(sel)select(sel.dataset.id);});
+document.getElementById('mapreset').addEventListener('click',()=>{MECH.forEach((m,i)=>{pos[m.id]=[...START[i]];place(m.id);});if(revealed){drawLines();scoreMap();}});
+new ResizeObserver(()=>{if(revealed)drawLines();}).observe(plane);
+
+/* ---------- Ethics sorting ---------- */
+const pool=document.getElementById('pool');const bins=[...document.querySelectorAll('.bin')];
+const where={};let selected=null;
+function cardEl(i){const x=DEC[i];const c=document.createElement('div');c.className='card';c.dataset.i=i;c.tabIndex=0;
+  c.innerHTML=`<span class="grip" aria-hidden="true">⠿</span><span>${x.t}</span>`;
+  const b=where[i];
+  if(b){const ok=match(i);const fb=document.createElement('div');fb.className='fb '+(ok?'ok':'no');
+    fb.innerHTML=`<b>${ok?'Збігається з сучасною оцінкою.':'Сучасний комітет вирішив би інакше.'}</b> ${x.fb}`;c.appendChild(fb);}
+  bindCard(c);return c;}
+function match(i){const p=where[i],g=DEC[i].good;if(g==='yes')return p==='yes';if(g==='fix')return p==='fix'||p==='no';return p==='no'||p==='fix';}
+function renderBoard(){pool.innerHTML='';bins.forEach(b=>b.querySelectorAll('.card').forEach(c=>c.remove()));
+  DEC.forEach((_,i)=>{const c=cardEl(i);if(where[i])document.querySelector(`.bin[data-bin="${where[i]}"]`).appendChild(c);else pool.appendChild(c);if(selected===i)c.classList.add('sel');});
+  ['yes','fix','no'].forEach(k=>document.getElementById('c-'+k).textContent=Object.values(where).filter(v=>v===k).length);
+  document.getElementById('sc').textContent=Object.keys(where).filter(k=>match(+k)).length;}
+function drop(i,bin){if(bin==='pool')delete where[i];else where[i]=bin;selected=null;renderBoard();}
+function bindCard(c){const i=+c.dataset.i;let st=null,ghost=null,dx=0,dy=0,dragged=false;
+  c.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'&&!e.target.closest('.grip'))return;
+    st=[e.clientX,e.clientY];const r=c.getBoundingClientRect();dx=e.clientX-r.left;dy=e.clientY-r.top;c.setPointerCapture(e.pointerId);});
+  c.addEventListener('pointermove',e=>{if(!st)return;
+    if(!ghost&&Math.hypot(e.clientX-st[0],e.clientY-st[1])>6){const r=c.getBoundingClientRect();dragged=true;ghost=c.cloneNode(true);ghost.classList.add('drag');ghost.style.width=r.width+'px';document.body.appendChild(ghost);c.style.opacity=.35;}
+    if(ghost){ghost.style.left=(e.clientX-dx)+'px';ghost.style.top=(e.clientY-dy)+'px';
+      const t=document.elementFromPoint(e.clientX,e.clientY);bins.forEach(b=>b.classList.toggle('over',!!t&&b.contains(t)));}});
+  const end=e=>{if(!st)return;st=null;bins.forEach(b=>b.classList.remove('over'));
+    if(ghost){ghost.remove();ghost=null;c.style.opacity='';const t=document.elementFromPoint(e.clientX,e.clientY);
+      const b=t&&t.closest('.bin');if(b)drop(i,b.dataset.bin);else if(t&&t.closest('#pool'))drop(i,'pool');}};
+  c.addEventListener('pointerup',end);c.addEventListener('pointercancel',end);
+  c.addEventListener('click',e=>{e.stopPropagation();if(dragged){dragged=false;return;}selected=selected===i?null:i;document.querySelectorAll('.card').forEach(x=>x.classList.toggle('sel',+x.dataset.i===selected));});
+  c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();c.click();}});}
+bins.forEach(b=>{b.tabIndex=0;b.addEventListener('click',()=>{if(selected!==null)drop(selected,b.dataset.bin);});
+  b.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&selected!==null){e.preventDefault();drop(selected,b.dataset.bin);}});});
+pool.addEventListener('click',()=>{if(selected!==null&&where[selected])drop(selected,'pool');});
+document.getElementById('ethreset').addEventListener('click',()=>{for(const k in where)delete where[k];selected=null;renderBoard();});
+renderBoard();
+
+/* ---------- Redaction sliders ---------- */
+const claimsEl=document.getElementById('claims');
+CLAIMS.forEach((c,i)=>{const d=document.createElement('div');d.className='cmp';
+  d.innerHTML=`<div class="q"><span class="label">Твердження ${i+1}</span><strong>${c.c}</strong></div>
+   <div class="stage">
+     <div class="layer neo"><span class="h">Архів<span class="verdict ${c.v[0]}">${c.v[1]}</span></span><p>${c.neo}</p></div>
+     <div class="layer old"><span class="h">Як розповідали підручники</span><p>${c.old}</p></div>
+     <input type="range" min="0" max="100" value="100" aria-label="Відкрити архівну версію: твердження ${i+1}">
+     <div class="seam"></div>
+   </div>`;
+  const old=d.querySelector('.layer.old'),inp=d.querySelector('input'),seam=d.querySelector('.seam');
+  const upd=()=>{const v=+inp.value;old.style.clipPath=`inset(0 ${100-v}% 0 0)`;seam.style.left=`clamp(18px, ${v}%, calc(100% - 18px))`;};
+  inp.addEventListener('input',upd);upd();claimsEl.appendChild(d);});
+
+/* ---------- Tabs ---------- */
+const tabs=[...document.querySelectorAll('[role=tab]')];
+tabs.forEach(t=>t.addEventListener('click',()=>{tabs.forEach(o=>{o.setAttribute('aria-selected',o===t);document.getElementById(o.getAttribute('aria-controls')).hidden=o!==t;});
+  if(t.id==='t-map'&&revealed)drawLines();}));
+</script>
+</body>
+</html>
